@@ -59,9 +59,9 @@ export default function SignUp() {
         <Text style={{ color: "white", textAlign: "center" }}>Sign up</Text>
       </Pressable>
 
-      {/* <Pressable onPress={() => router.push("/sign-in")}>
+      <Pressable onPress={() => router.push("./sign-in")}>
         <Text>Already have an account? Sign in</Text>
-      </Pressable> */}
+      </Pressable>
     </View>
   );
 }
