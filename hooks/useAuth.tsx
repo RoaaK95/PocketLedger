@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
+      console.log("Auth state changed:", u?.email || "null (logged out)");
       setUser(u);
       setLoading(false);
     });

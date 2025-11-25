@@ -2,29 +2,69 @@ import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { auth, db } from "../../firebase/config";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Validate inputs
+    if (!name.trim()) {
+      Alert.alert("Error", "Please enter your name");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      Alert.alert("Error", "Please enter your email");
+      return;
+    }
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+    if (!password) {
+      Alert.alert("Error", "Please enter a password");
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
+    }
 
-    //create user profile and role
+    setLoading(true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
 
-    await setDoc(doc(db, "users", cred.user.uid), {
-      uid: cred.user.uid,
-      name,
-      email,
-      role: "user",
-      currency: "IQD",
-    });
+      //create user profile and role
 
-    router.replace("/");
-    //goes to tabs
+      await setDoc(doc(db, "users", cred.user.uid), {
+        uid: cred.user.uid,
+        name: name.trim(),
+        email: email.trim(),
+        role: "user",
+        currency: "IQD",
+      });
+
+      router.replace("/");
+      //goes to tabs
+    } catch (error: any) {
+      console.error(error);
+      let message = "Failed to create account";
+      if (error.code === "auth/invalid-email") {
+        message = "Invalid email address";
+      } else if (error.code === "auth/email-already-in-use") {
+        message = "An account with this email already exists";
+      } else if (error.code === "auth/weak-password") {
+        message = "Password is too weak";
+      }
+      Alert.alert("Error", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,9 +94,10 @@ export default function SignUp() {
 
       <Pressable
         onPress={onSubmit}
-        style={{ backgroundColor: "#111", padding: 12 }}
+        disabled={loading}
+        style={{ backgroundColor: loading ? "#666" : "#111", padding: 12 }}
       >
-        <Text style={{ color: "white", textAlign: "center" }}>Sign up</Text>
+        <Text style={{ color: "white", textAlign: "center" }}>{loading ? "Creating account..." : "Sign up"}</Text>
       </Pressable>
 
       <Pressable onPress={() => router.push("./sign-in")}>

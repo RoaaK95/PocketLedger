@@ -1,8 +1,8 @@
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
-import { listTxs, Tx } from "../../src/db/transactionsRepo";
-import { useAuth } from "../../src/hooks/useAuth";
+import { listTxs, Tx } from "../../db/transactionsRepo";
+import { useAuth } from "../../hooks/useAuth";
 
 
 export default function Transactions() {
@@ -31,7 +31,7 @@ export default function Transactions() {
       />
 
       <Pressable
-        onPress={() => router.push("./add-transaction")}
+        onPress={() => router.push("/add-transaction")}
         style={{
           position: "absolute",
           bottom: 20,
