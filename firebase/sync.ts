@@ -36,7 +36,9 @@ export async function syncTxs(userId: string) {
       sql.runSync(`DELETE FROM transactions WHERE id = ?`, [tx.id]);
       deleted++;
     } else {
-      await setDoc(txRef, tx, { merge: true });
+      // Update syncStatus to 'synced' before pushing to Firebase
+      const syncedTx = { ...tx, syncStatus: "synced" as const };
+      await setDoc(txRef, syncedTx, { merge: true });
       sql.runSync(`UPDATE transactions SET syncStatus = 'synced' WHERE id = ?`, [
         tx.id,
       ]);

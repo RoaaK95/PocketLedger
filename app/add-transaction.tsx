@@ -10,6 +10,7 @@ export default function AddTransaction() {
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [type, setType] = useState<"expense" | "income">("expense");
 
   const save = () => {
     if (!user) return;
@@ -24,7 +25,7 @@ export default function AddTransaction() {
     addTx({
       id: uuid(),
       userId: user.uid,
-      type: "expense",
+      type: type,
       amount: Number(amount),
       categoryId: "general",
       note,
@@ -52,6 +53,51 @@ export default function AddTransaction() {
         </View>
 
         <View style={styles.form}>
+          <View style={styles.typeSelector}>
+            <Pressable
+              onPress={() => setType("expense")}
+              style={[
+                styles.typeButton,
+                type === "expense" && styles.typeButtonActive,
+                styles.typeButtonLeft,
+              ]}
+            >
+              <Ionicons 
+                name="arrow-down-circle" 
+                size={20} 
+                color={type === "expense" ? "white" : "#EF5350"} 
+                style={styles.typeIcon}
+              />
+              <Text style={[
+                styles.typeButtonText,
+                type === "expense" && styles.typeButtonTextActive,
+              ]}>
+                Expense
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setType("income")}
+              style={[
+                styles.typeButton,
+                type === "income" && styles.typeButtonActiveIncome,
+                styles.typeButtonRight,
+              ]}
+            >
+              <Ionicons 
+                name="arrow-up-circle" 
+                size={20} 
+                color={type === "income" ? "white" : "#4CAF50"} 
+                style={styles.typeIcon}
+              />
+              <Text style={[
+                styles.typeButtonText,
+                type === "income" && styles.typeButtonTextActive,
+              ]}>
+                Income
+              </Text>
+            </Pressable>
+          </View>
+
           <View style={styles.inputContainer}>
             <Ionicons name="cash-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
@@ -131,6 +177,47 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 16,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    overflow: 'hidden',
+  },
+  typeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    backgroundColor: 'white',
+  },
+  typeButtonLeft: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#e0e0e0',
+  },
+  typeButtonRight: {
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#e0e0e0',
+  },
+  typeButtonActive: {
+    backgroundColor: '#EF5350',
+  },
+  typeButtonActiveIncome: {
+    backgroundColor: '#4CAF50',
+  },
+  typeIcon: {
+    marginRight: 8,
+  },
+  typeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  typeButtonTextActive: {
+    color: 'white',
   },
   inputContainer: {
     flexDirection: 'row',
