@@ -1,9 +1,9 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { db } from "../db/sqlite";
-import { Tx } from "../db/transactionsRepo";
-
+import { Tx, deleteTransaction } from "../db/transactionsRepo";
+ 
 export default function ViewTransaction() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [transaction, setTransaction] = useState<Tx | null>(null);
@@ -17,6 +17,32 @@ export default function ViewTransaction() {
       setTransaction(tx);
     }
   }, [id]);
+
+  const handleDelete = () => {
+    Alert.alert(
+        "Delete Transaction",
+        "Are you sure you want to delete this transaction? This action cannot be undone.",
+        [
+            {
+              text: "Cancel",
+              style:"cancel",
+            },
+            {
+               text: "Delete",
+               style: "destructive",
+               onPress: async () =>{
+                try{
+                    await deleteTransaction(id as string);
+                    router.back();
+                } catch(error){
+                    Alert.alert("Error", "Failed to delete transaction");
+                    console.error("Delete error:", error)
+                }
+               }
+            },
+        ]
+    );
+  };
 
   if (!transaction) {
     return (
@@ -113,7 +139,13 @@ export default function ViewTransaction() {
             </Text>
           </View>
         </View>
-
+        
+        <Pressable
+        onPress={handleDelete}
+        style={styles.deleteButton}
+        >
+            <Text style={styles.deleteButtonText}>Delete Transaction</Text>
+        </Pressable>
         <Pressable
           onPress={() => router.back()}
           style={styles.backButton}
@@ -193,11 +225,25 @@ const styles = StyleSheet.create({
   pendingBadge: {
     backgroundColor: "#fff3cd",
   },
+  deleteButton:{
+    backgroundColor: "#c92a2a",
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  deleteButtonText:{
+    color: "white",
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   backButton: {
     backgroundColor: "#111",
     padding: 16,
     borderRadius: 8,
-    marginTop: 20,
+    marginTop: 0,
+    marginBottom: 20,
+    
   },
   backButtonText: {
     color: "white",

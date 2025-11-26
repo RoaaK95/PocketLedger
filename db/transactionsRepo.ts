@@ -33,3 +33,13 @@ export function listTxs(userId: string) {
     [userId]
   );
 }
+
+export function deleteTransaction(id: string){
+  //Mark as deleted instead of hard delete
+  db.runSync(
+    `UPDATE transactions
+     SET syncStatus = 'deleted', updatedAt =?
+     WHERE id = ?`,
+     [new Date().toISOString(), id]
+  );
+}
