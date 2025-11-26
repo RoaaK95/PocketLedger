@@ -35,9 +35,11 @@ export function listTxs(userId: string) {
 }
 
 export function deleteTransaction(id: string){
-  //Hard delete from local database
+  //Hard delete from local and firebase
   db.runSync(
-    `DELETE FROM transactions WHERE id = ?`,
-    [id]
+    `UPDATE transactions
+     SET syncStatus = 'deleted', updatedAt =?
+     WHERE id = ?`,
+     [new Date().toISOString(), id]
   );
 }
