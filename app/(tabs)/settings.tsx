@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 20,
     shadowColor: '#f44336',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
