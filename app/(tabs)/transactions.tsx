@@ -22,11 +22,14 @@ export default function Transactions() {
         data={txs}
         keyExtractor={(i) => i.id}
         renderItem={({ item }) => (
-          <View style={{ padding: 12, borderWidth: 1, marginBottom: 8 }}>
-            <Text>{item.type.toUpperCase()} - {item.amount}</Text>
+          <Pressable
+            onPress={() => router.push(`/view-transaction?id=${item.id}`)}
+            style={{ padding: 12, borderWidth: 1, marginBottom: 8, backgroundColor: 'white', borderRadius: 8 }}
+          >
+            <Text style={{ fontWeight: 'bold' }}>{item.type.toUpperCase()} - {item.amount} IQD </Text>
             <Text>{item.note}</Text>
-            <Text>{new Date(item.date).toDateString()}</Text>
-          </View>
+            <Text style={{ color: '#666', fontSize: 12 }}>{new Date(item.date).toDateString()}</Text>
+          </Pressable>
         )}
       />
 
