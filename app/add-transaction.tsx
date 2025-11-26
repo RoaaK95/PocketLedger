@@ -356,10 +356,10 @@ const styles = StyleSheet.create({
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   categoryButton: {
-    width: '31%',
+    width: '32%',
     backgroundColor: 'white',
     borderRadius: 12,
     borderWidth: 1,

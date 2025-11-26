@@ -4,6 +4,31 @@ import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { db } from "../db/sqlite";
 import { Tx, deleteTransaction, updateTransaction } from "../db/transactionsRepo";
+
+type Category = {
+  id: string;
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+};
+
+const EXPENSE_CATEGORIES: Category[] = [
+  { id: "food", name: "Food & Dining", icon: "restaurant" },
+  { id: "transport", name: "Transportation", icon: "car" },
+  { id: "shopping", name: "Shopping", icon: "cart" },
+  { id: "entertainment", name: "Entertainment", icon: "game-controller" },
+  { id: "bills", name: "Bills & Utilities", icon: "receipt" },
+  { id: "health", name: "Health", icon: "medical" },
+  { id: "education", name: "Education", icon: "school" },
+  { id: "general", name: "General", icon: "folder" },
+];
+
+const INCOME_CATEGORIES: Category[] = [
+  { id: "salary", name: "Salary", icon: "wallet" },
+  { id: "business", name: "Business", icon: "briefcase" },
+  { id: "investment", name: "Investment", icon: "trending-up" },
+  { id: "gift", name: "Gift", icon: "gift" },
+  { id: "other", name: "Other", icon: "cash" },
+];
  
 export default function ViewTransaction() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -12,6 +37,7 @@ export default function ViewTransaction() {
   const [editAmount, setEditAmount] = useState("");
   const [editNote, setEditNote] = useState("");
   const [editType, setEditType] = useState<"expense" | "income">("expense");
+  const [editCategoryId, setEditCategoryId] = useState("general");
 
   useEffect(() => {
     if (id) {
@@ -29,6 +55,7 @@ export default function ViewTransaction() {
       setEditAmount(tx.amount.toString());
       setEditNote(tx.note || "");
       setEditType(tx.type);
+      setEditCategoryId(tx.categoryId);
     }
   };
 
@@ -75,6 +102,7 @@ export default function ViewTransaction() {
         ...transaction,
         type: editType,
         amount: Number(editAmount),
+        categoryId: editCategoryId,
         note: editNote,
         updatedAt: new Date().toISOString(),
       };
@@ -89,14 +117,22 @@ export default function ViewTransaction() {
     }
   };
 
+  const handleEditTypeChange = (newType: "expense" | "income") => {
+    setEditType(newType);
+    setEditCategoryId(newType === "expense" ? "general" : "salary");
+  };
+
   const handleCancelEdit = () => {
     if (transaction) {
       setEditAmount(transaction.amount.toString());
       setEditNote(transaction.note || "");
       setEditType(transaction.type);
+      setEditCategoryId(transaction.categoryId);
     }
     setIsEditMode(false);
   };
+
+  const editCategories = editType === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
   if (!transaction) {
     return (
@@ -272,7 +308,7 @@ export default function ViewTransaction() {
             <View style={styles.form}>
               <View style={styles.typeSelector}>
                 <Pressable
-                  onPress={() => setEditType("expense")}
+                  onPress={() => handleEditTypeChange("expense")}
                   style={[
                     styles.typeButton,
                     editType === "expense" && styles.typeButtonActive,
@@ -293,7 +329,7 @@ export default function ViewTransaction() {
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => setEditType("income")}
+                  onPress={() => handleEditTypeChange("income")}
                   style={[
                     styles.typeButton,
                     editType === "income" && styles.typeButtonActiveIncome,
@@ -313,6 +349,34 @@ export default function ViewTransaction() {
                     Income
                   </Text>
                 </Pressable>
+              </View>
+
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionLabel}>Category</Text>
+                <View style={styles.categoryGrid}>
+                  {editCategories.map((category) => (
+                    <Pressable
+                      key={category.id}
+                      onPress={() => setEditCategoryId(category.id)}
+                      style={[
+                        styles.categoryButton,
+                        editCategoryId === category.id && styles.categoryButtonActive,
+                      ]}
+                    >
+                      <Ionicons
+                        name={category.icon}
+                        size={24}
+                        color={editCategoryId === category.id ? "white" : "#666"}
+                      />
+                      <Text style={[
+                        styles.categoryButtonText,
+                        editCategoryId === category.id && styles.categoryButtonTextActive,
+                      ]}>
+                        {category.name}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
 
               <View style={styles.inputContainer}>
@@ -680,5 +744,42 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 17,
     fontWeight: '600',
+  },
+  sectionContainer: {
+    gap: 12,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginLeft: 4,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  categoryButton: {
+    width: '32%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    padding: 8,
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryButtonActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  categoryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    textAlign: 'center',
+  },
+  categoryButtonTextActive: {
+    color: 'white',
   },
 });
