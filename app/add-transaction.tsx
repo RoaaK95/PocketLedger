@@ -6,11 +6,37 @@ import { v4 as uuid } from "uuid";
 import { addTx } from "../db/transactionsRepo";
 import { useAuth } from "../hooks/useAuth";
 
+type Category = {
+  id: string;
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+};
+
+const EXPENSE_CATEGORIES: Category[] = [
+  { id: "food", name: "Food & Dining", icon: "restaurant" },
+  { id: "transport", name: "Transportation", icon: "car" },
+  { id: "shopping", name: "Shopping", icon: "cart" },
+  { id: "entertainment", name: "Entertainment", icon: "game-controller" },
+  { id: "bills", name: "Bills & Utilities", icon: "receipt" },
+  { id: "health", name: "Health", icon: "medical" },
+  { id: "education", name: "Education", icon: "school" },
+  { id: "general", name: "General", icon: "folder" },
+];
+
+const INCOME_CATEGORIES: Category[] = [
+  { id: "salary", name: "Salary", icon: "wallet" },
+  { id: "business", name: "Business", icon: "briefcase" },
+  { id: "investment", name: "Investment", icon: "trending-up" },
+  { id: "gift", name: "Gift", icon: "gift" },
+  { id: "other", name: "Other", icon: "cash" },
+];
+
 export default function AddTransaction() {
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [type, setType] = useState<"expense" | "income">("expense");
+  const [categoryId, setCategoryId] = useState("general");
 
   const save = () => {
     if (!user) return;
@@ -22,21 +48,31 @@ export default function AddTransaction() {
 
     const now = new Date().toISOString();
 
-    addTx({
+    const transaction = {
       id: uuid(),
       userId: user.uid,
       type: type,
       amount: Number(amount),
-      categoryId: "general",
+      categoryId: categoryId,
       note,
       date: now,
       createdAt: now,
       updatedAt: now,
-      syncStatus: "pending",
-    });
+      syncStatus: "pending" as const,
+    };
+
+    console.log("Saving transaction with categoryId:", transaction.categoryId);
+    addTx(transaction);
 
     router.back();
   };
+
+  const handleTypeChange = (newType: "expense" | "income") => {
+    setType(newType);
+    setCategoryId(newType === "expense" ? "general" : "salary");
+  };
+
+  const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
   return (
     <KeyboardAvoidingView 
@@ -55,7 +91,7 @@ export default function AddTransaction() {
         <View style={styles.form}>
           <View style={styles.typeSelector}>
             <Pressable
-              onPress={() => setType("expense")}
+              onPress={() => handleTypeChange("expense")}
               style={[
                 styles.typeButton,
                 type === "expense" && styles.typeButtonActive,
@@ -76,7 +112,7 @@ export default function AddTransaction() {
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => setType("income")}
+              onPress={() => handleTypeChange("income")}
               style={[
                 styles.typeButton,
                 type === "income" && styles.typeButtonActiveIncome,
@@ -96,6 +132,34 @@ export default function AddTransaction() {
                 Income
               </Text>
             </Pressable>
+          </View>
+
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionLabel}>Category</Text>
+            <View style={styles.categoryGrid}>
+              {categories.map((category) => (
+                <Pressable
+                  key={category.id}
+                  onPress={() => setCategoryId(category.id)}
+                  style={[
+                    styles.categoryButton,
+                    categoryId === category.id && styles.categoryButtonActive,
+                  ]}
+                >
+                  <Ionicons
+                    name={category.icon}
+                    size={24}
+                    color={categoryId === category.id ? "white" : "#666"}
+                  />
+                  <Text style={[
+                    styles.categoryButtonText,
+                    categoryId === category.id && styles.categoryButtonTextActive,
+                  ]}>
+                    {category.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           <View style={styles.inputContainer}>
@@ -279,5 +343,42 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 17,
     fontWeight: '600',
+  },
+  sectionContainer: {
+    gap: 12,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginLeft: 4,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryButton: {
+    width: '31%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    padding: 8,
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryButtonActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  categoryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    textAlign: 'center',
+  },
+  categoryButtonTextActive: {
+    color: 'white',
   },
 });
