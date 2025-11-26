@@ -4,7 +4,7 @@
     "slug": "PocketLedger",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/appIcon.png",
+    "icon": "./assets/images/wallet.png",
     "scheme": "pocketledger",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -30,7 +30,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/appIcon.png",
+          "image": "./assets/images/wallet.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
