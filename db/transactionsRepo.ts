@@ -43,3 +43,12 @@ export function deleteTransaction(id: string){
      [new Date().toISOString(), id]
   );
 }
+
+export function updateTransaction(tx: Tx) {
+  db.runSync(
+    `UPDATE transactions
+     SET type = ?, amount = ?, categoryId = ?, note = ?, date = ?, updatedAt = ?, syncStatus = 'pending'
+     WHERE id = ?`,
+    [tx.type, tx.amount, tx.categoryId, tx.note ?? "", tx.date, tx.updatedAt, tx.id]
+  );
+}
