@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { listTxs, Tx } from "../../db/transactionsRepo";
-import { syncTxs, getPendingTxs } from "../../firebase/sync";
+import { getPendingTxs, syncTxs } from "../../firebase/sync";
 import { useAuth } from "../../hooks/useAuth";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Dashboard() {
   const { user } = useAuth();
