@@ -216,7 +216,9 @@ export default function Settings() {
           
           <Pressable style={styles.settingItem} onPress={handleOpenModal}>
             <Ionicons name="person-outline" size={20} color="#666" style={styles.settingIcon} />
-            <Text style={styles.settingText}>Profile</Text>
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingText}>Profile</Text>
+            </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </Pressable>
 
