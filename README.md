@@ -170,17 +170,6 @@ The app implements an **offline-first** approach:
 4. **Conflict Resolution**: Server timestamp-based merge strategy
 5. **Fallback**: Full offline functionality maintained
 
-## 🎨 Theming
-
-The app supports both light and dark themes with automatic system detection:
-
-```typescript
-// constants/theme.ts
-export const theme = {
-  light: { /* light theme colors */ },
-  dark: { /* dark theme colors */ }
-};
-```
 
 ## 📝 Available Scripts
 
@@ -214,16 +203,6 @@ Contributions are welcome! Please follow these steps:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 👤 Author
-
-**RoaaK95**
-- GitHub: [@RoaaK95](https://github.com/RoaaK95)
-
-## 🙏 Acknowledgments
-
-- Built with [Expo](https://expo.dev/)
-- Icons from [@expo/vector-icons](https://icons.expo.fyi/)
-- Backend powered by [Firebase](https://firebase.google.com/)
 
 ---
 
