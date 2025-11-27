@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { v4 as uuid } from "uuid";
 import { addTx } from "../db/transactionsRepo";
@@ -37,6 +38,19 @@ export default function AddTransaction() {
   const [note, setNote] = useState("");
   const [type, setType] = useState<"expense" | "income">("expense");
   const [categoryId, setCategoryId] = useState("general");
+  const [currency, setCurrency] = useState("IQD");
+
+  useEffect(() => {
+    if (!user) return;
+    
+    AsyncStorage.getItem(`user_currency_${user.uid}`).then((storedCurrency) => {
+      if (storedCurrency) {
+        setCurrency(storedCurrency);
+      }
+    }).catch((error) => {
+      console.error("Error loading currency:", error);
+    });
+  }, [user]);
 
   const save = () => {
     if (!user) return;
@@ -172,7 +186,7 @@ export default function AddTransaction() {
               style={styles.input}
               placeholderTextColor="#999"
             />
-            <Text style={styles.currency}>IQD</Text>
+            <Text style={styles.currency}>{currency}</Text>
           </View>
 
           <View style={styles.inputContainer}>

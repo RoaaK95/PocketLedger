@@ -58,6 +58,7 @@ async function syncUserProfile(userId: string) {
   try {
     const pendingNameSync = await AsyncStorage.getItem(`user_name_pending_sync_${userId}`);
     const pendingImageSync = await AsyncStorage.getItem(`user_image_pending_sync_${userId}`);
+    const pendingCurrencySync = await AsyncStorage.getItem(`user_currency_pending_sync_${userId}`);
     
     const updateData: any = {};
     
@@ -85,6 +86,16 @@ async function syncUserProfile(userId: string) {
         } catch (error) {
           console.error("Error uploading profile image:", error);
         }
+      }
+    }
+    
+    // Sync currency if pending
+    if (pendingCurrencySync === 'true') {
+      const userCurrency = await AsyncStorage.getItem(`user_currency_${userId}`);
+      if (userCurrency !== null) {
+        updateData.currency = userCurrency;
+        await AsyncStorage.removeItem(`user_currency_pending_sync_${userId}`);
+        console.log("Currency synced to Firebase:", userCurrency);
       }
     }
     
@@ -137,6 +148,12 @@ export async function loadUserProfileFromFirebase(userId: string) {
       if (data.profileImageUrl) {
         await AsyncStorage.setItem(`user_image_${userId}`, data.profileImageUrl);
         console.log("Profile image URL loaded from Firebase");
+      }
+      
+      // Load and save currency
+      if (data.currency) {
+        await AsyncStorage.setItem(`user_currency_${userId}`, data.currency);
+        console.log("Currency loaded from Firebase:", data.currency);
       }
       
       return displayName || null;

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -38,6 +39,7 @@ export default function ViewTransaction() {
   const [editNote, setEditNote] = useState("");
   const [editType, setEditType] = useState<"expense" | "income">("expense");
   const [editCategoryId, setEditCategoryId] = useState("general");
+  const [currency, setCurrency] = useState("IQD");
 
   useEffect(() => {
     if (id) {
@@ -56,6 +58,15 @@ export default function ViewTransaction() {
       setEditNote(tx.note || "");
       setEditType(tx.type);
       setEditCategoryId(tx.categoryId);
+      
+      // Load currency
+      AsyncStorage.getItem(`user_currency_${tx.userId}`).then((storedCurrency) => {
+        if (storedCurrency) {
+          setCurrency(storedCurrency);
+        }
+      }).catch((error) => {
+        console.error("Error loading currency:", error);
+      });
     }
   };
 
@@ -175,7 +186,7 @@ export default function ViewTransaction() {
             transaction.type === 'income' ? styles.amountIncome : styles.amountExpense
           ]}>
             {transaction.type === "income" ? "+" : "-"}
-            {transaction.amount.toFixed(2)} IQD
+            {transaction.amount.toFixed(2)} {currency}
           </Text>
         </View>
 
@@ -389,7 +400,7 @@ export default function ViewTransaction() {
                   style={styles.inputField}
                   placeholderTextColor="#999"
                 />
-                <Text style={styles.currency}>IQD</Text>
+                <Text style={styles.currency}>{currency}</Text>
               </View>
 
               <View style={styles.inputContainer}>

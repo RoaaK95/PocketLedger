@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
@@ -9,11 +10,21 @@ import { useAuth } from "../../hooks/useAuth";
 export default function Transactions() {
   const { user } = useAuth();
   const [txs, setTxs] = useState<Tx[]>([]);
+  const [currency, setCurrency] = useState("IQD");
 
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
       setTxs(listTxs(user.uid));
+      
+      // Load currency
+      AsyncStorage.getItem(`user_currency_${user.uid}`).then((storedCurrency) => {
+        if (storedCurrency) {
+          setCurrency(storedCurrency);
+        }
+      }).catch((error) => {
+        console.error("Error loading currency:", error);
+      });
     }, [user])
   );
 
@@ -52,7 +63,7 @@ export default function Transactions() {
               </View>
               <View style={styles.transactionContent}>
                 <Text style={styles.transactionAmount}>
-                  {item.type === 'income' ? '+' : '-'}{item.amount} IQD
+                  {item.type === 'income' ? '+' : '-'}{item.amount} {currency}
                 </Text>
                 <Text style={styles.transactionNote} numberOfLines={1}>
                   {item.note || 'No note'}

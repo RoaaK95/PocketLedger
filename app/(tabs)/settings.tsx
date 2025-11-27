@@ -11,9 +11,11 @@ import { useAuth } from "../../hooks/useAuth";
 export default function Settings() {
   const { user } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
+  const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [currency, setCurrency] = useState("IQD");
 
   const loadUserName = useCallback(async () => {
     if (!user) return;
@@ -42,6 +44,12 @@ export default function Settings() {
       if (storedImage) {
         setProfileImage(storedImage);
       }
+
+      // Load currency
+      const storedCurrency = await AsyncStorage.getItem(`user_currency_${user.uid}`);
+      if (storedCurrency) {
+        setCurrency(storedCurrency);
+      }
     } catch (error) {
       console.error("Error loading name:", error);
       setDisplayName(user.displayName || "");
@@ -57,6 +65,36 @@ export default function Settings() {
   const handleOpenModal = () => {
     loadUserName(); // Reload name when opening modal
     setModalVisible(true);
+  };
+
+  const currencies = [
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'IQD', name: 'Iraqi Dinar', symbol: 'IQD' },
+    { code: 'SAR', name: 'Saudi Riyal', symbol: 'SAR' },
+    { code: 'AED', name: 'UAE Dirham', symbol: 'AED' },
+    { code: 'KWD', name: 'Kuwaiti Dinar', symbol: 'KWD' },
+    { code: 'QAR', name: 'Qatari Riyal', symbol: 'QAR' },
+    { code: 'OMR', name: 'Omani Rial', symbol: 'OMR' },
+    { code: 'BHD', name: 'Bahraini Dinar', symbol: 'BHD' },
+    { code: 'JOD', name: 'Jordanian Dinar', symbol: 'JOD' },
+    { code: 'LBP', name: 'Lebanese Pound', symbol: 'LBP' },
+    { code: 'EGP', name: 'Egyptian Pound', symbol: 'EGP' },
+  ];
+
+  const handleCurrencySelect = async (currencyCode: string) => {
+    if (!user) return;
+    
+    try {
+      setCurrency(currencyCode);
+      await AsyncStorage.setItem(`user_currency_${user.uid}`, currencyCode);
+      await AsyncStorage.setItem(`user_currency_pending_sync_${user.uid}`, 'true');
+      setCurrencyModalVisible(false);
+    } catch (error) {
+      console.error("Error saving currency:", error);
+      Alert.alert("Error", "Failed to save currency. Please try again.");
+    }
   };
 
   const pickImageFromGallery = async () => {
@@ -188,12 +226,14 @@ export default function Settings() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           
-          <View style={styles.settingItem}>
-            <Ionicons name="moon-outline" size={20} color="#666" style={styles.settingIcon} />
-            <Text style={styles.settingText}>Dark Mode</Text>
+          <Pressable style={styles.settingItem} onPress={() => setCurrencyModalVisible(true)}>
+            <Ionicons name="cash-outline" size={20} color="#666" style={styles.settingIcon} />
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingText}>Currency</Text>
+              <Text style={styles.settingValue}>{currency}</Text>
+            </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
-          </View>
- 
+          </Pressable>
         </View>
 
         <Pressable 
@@ -274,6 +314,50 @@ export default function Settings() {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={currencyModalVisible}
+        onRequestClose={() => setCurrencyModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Currency</Text>
+              <Pressable onPress={() => setCurrencyModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#666" />
+              </Pressable>
+            </View>
+
+            <ScrollView style={styles.currencyList}>
+              {currencies.map((curr) => (
+                <Pressable
+                  key={curr.code}
+                  style={[
+                    styles.currencyItem,
+                    currency === curr.code && styles.currencyItemSelected
+                  ]}
+                  onPress={() => handleCurrencySelect(curr.code)}
+                >
+                  <View style={styles.currencyInfo}>
+                    <Text style={[
+                      styles.currencyCode,
+                      currency === curr.code && styles.currencyCodeSelected
+                    ]}>
+                      {curr.code}
+                    </Text>
+                    <Text style={styles.currencyName}>{curr.name}</Text>
+                  </View>
+                  {currency === curr.code && (
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                  )}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -334,10 +418,20 @@ const styles = StyleSheet.create({
   settingIcon: {
     marginRight: 12,
   },
-  settingText: {
+  settingTextContainer: {
     flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  settingText: {
     fontSize: 16,
     color: '#1a1a1a',
+  },
+  settingValue: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
   },
   logoutButton: {
     backgroundColor: '#f44336',
@@ -472,5 +566,36 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
     fontWeight: '600',
+  },
+  currencyList: {
+    maxHeight: 400,
+  },
+  currencyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  currencyItemSelected: {
+    backgroundColor: '#E8F5E9',
+  },
+  currencyInfo: {
+    flex: 1,
+  },
+  currencyCode: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  currencyCodeSelected: {
+    color: '#4CAF50',
+  },
+  currencyName: {
+    fontSize: 14,
+    color: '#666',
   },
 });

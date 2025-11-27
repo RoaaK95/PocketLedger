@@ -7,6 +7,10 @@ import { listTxs, Tx } from "../../db/transactionsRepo";
 import { getPendingTxs, syncTxs } from "../../firebase/sync";
 import { useAuth } from "../../hooks/useAuth";
 
+const getCurrencySymbol = (currencyCode: string) => {
+  return currencyCode;
+};
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(false);
@@ -16,6 +20,7 @@ export default function Dashboard() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [balance, setBalance] = useState(0);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [currency, setCurrency] = useState("IQD");
 
   const loadTransactions = useCallback(() => {
     if (!user) return;
@@ -40,6 +45,19 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  const loadCurrency = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const storedCurrency = await AsyncStorage.getItem(`user_currency_${user.uid}`);
+      if (storedCurrency) {
+        setCurrency(storedCurrency);
+      }
+    } catch (error) {
+      console.error("Error loading currency:", error);
+    }
+  }, [user]);
+
   const checkPendingChanges = useCallback(async () => {
     if (!user) return;
     
@@ -50,32 +68,36 @@ export default function Dashboard() {
       // Check for pending profile changes
       const pendingName = await AsyncStorage.getItem(`user_name_pending_sync_${user.uid}`);
       const pendingImage = await AsyncStorage.getItem(`user_image_pending_sync_${user.uid}`);
+      const pendingCurrency = await AsyncStorage.getItem(`user_currency_pending_sync_${user.uid}`);
       
-      const hasPending = pendingTxs.length > 0 || pendingName === 'true' || pendingImage === 'true';
+      const hasPending = pendingTxs.length > 0 || pendingName === 'true' || pendingImage === 'true' || pendingCurrency === 'true';
       setHasPendingChanges(hasPending);
       
-      if (hasPending && !lastSyncMsg) {
+      if (hasPending) {
         let count = pendingTxs.length;
-        const profileChanges = (pendingName === 'true' ? 1 : 0) + (pendingImage === 'true' ? 1 : 0);
+        const profileChanges = (pendingName === 'true' ? 1 : 0) + (pendingImage === 'true' ? 1 : 0) + (pendingCurrency === 'true' ? 1 : 0);
         
-        if (profileChanges > 0) {
+        if (count > 0 && profileChanges > 0) {
           setLastSyncMsg(`${count} transaction(s) and ${profileChanges} profile change(s) pending sync.`);
-        } else {
+        } else if (count > 0) {
           setLastSyncMsg(`${count} transaction(s) pending sync.`);
+        } else if (profileChanges > 0) {
+          setLastSyncMsg(`${profileChanges} profile change(s) pending sync.`);
         }
-      } else if (!hasPending && !lastSyncMsg) {
+      } else {
         setLastSyncMsg("Everything is synced!");
       }
     } catch (error) {
       console.error("Error checking pending changes:", error);
     }
-  }, [user, lastSyncMsg]);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
       loadTransactions();
+      loadCurrency();
       checkPendingChanges();
-    }, [loadTransactions, checkPendingChanges])
+    }, [loadTransactions, loadCurrency, checkPendingChanges])
   );
 
   const formatAmount = (amount: number) => {
@@ -112,9 +134,6 @@ export default function Dashboard() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="home" size={48} color="#4CAF50" />
-          </View>
           <Text style={styles.title}>Dashboard</Text>
           <Text style={styles.subtitle}>Welcome to Pocket Ledger</Text>
         </View>
@@ -122,39 +141,34 @@ export default function Dashboard() {
         <View style={styles.statsContainer}>
           <View style={[styles.statCard, styles.balanceCard]}>
             <View style={styles.cardHeader}>
-              <View style={styles.iconBadge}>
-                <Ionicons name="wallet" size={24} color="#fff" />
-              </View>
               <Text style={styles.cardTitle}>Total Balance</Text>
             </View>
             <View style={styles.amountRow}>
               <Text style={[styles.mainAmount, balance < 0 && styles.negativeAmount]}>
                 {formatAmount(balance)}
               </Text>
-              <Text style={styles.currency}>IQD</Text>
+              <Text style={styles.currency}>{getCurrencySymbol(currency)}</Text>
             </View>
           </View>
 
           <View style={styles.statsRow}>
             <View style={[styles.smallCard, styles.incomeCard]}>
               <View style={styles.smallCardHeader}>
-                <Ionicons name="trending-up" size={20} color="#4CAF50" />
                 <Text style={styles.smallCardLabel}>Income</Text>
               </View>
               <View style={styles.smallAmountRow}>
                 <Text style={styles.smallAmount}>{formatAmount(totalIncome)}</Text>
-                <Text style={styles.smallCurrency}>IQD</Text>
+                <Text style={styles.smallCurrency}>{getCurrencySymbol(currency)}</Text>
               </View>
             </View>
 
             <View style={[styles.smallCard, styles.expenseCard]}>
               <View style={styles.smallCardHeader}>
-                <Ionicons name="trending-down" size={20} color="#f44336" />
                 <Text style={styles.smallCardLabel}>Expenses</Text>
               </View>
               <View style={styles.smallAmountRow}>
                 <Text style={styles.smallAmount}>{formatAmount(totalExpenses)}</Text>
-                <Text style={styles.smallCurrency}>IQD</Text>
+                <Text style={styles.smallCurrency}>{getCurrencySymbol(currency)}</Text>
               </View>
             </View>
           </View>
@@ -213,15 +227,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   title: {
     fontSize: 28,
     fontWeight: '700',
@@ -252,15 +257,6 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   cardTitle: {
@@ -313,9 +309,6 @@ const styles = StyleSheet.create({
     borderLeftColor: '#f44336',
   },
   smallCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
     marginBottom: 12,
   },
   smallCardLabel: {
