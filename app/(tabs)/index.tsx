@@ -3,8 +3,9 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { listTxs, Tx } from "../../db/transactionsRepo";
-import { syncTxs } from "../../firebase/sync";
+import { syncTxs, getPendingTxs } from "../../firebase/sync";
 import { useAuth } from "../../hooks/useAuth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [balance, setBalance] = useState(0);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
   const loadTransactions = useCallback(() => {
     if (!user) return;
@@ -38,10 +40,42 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  const checkPendingChanges = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      // Check for pending transactions
+      const pendingTxs = getPendingTxs(user.uid);
+      
+      // Check for pending profile changes
+      const pendingName = await AsyncStorage.getItem(`user_name_pending_sync_${user.uid}`);
+      const pendingImage = await AsyncStorage.getItem(`user_image_pending_sync_${user.uid}`);
+      
+      const hasPending = pendingTxs.length > 0 || pendingName === 'true' || pendingImage === 'true';
+      setHasPendingChanges(hasPending);
+      
+      if (hasPending && !lastSyncMsg) {
+        let count = pendingTxs.length;
+        const profileChanges = (pendingName === 'true' ? 1 : 0) + (pendingImage === 'true' ? 1 : 0);
+        
+        if (profileChanges > 0) {
+          setLastSyncMsg(`${count} transaction(s) and ${profileChanges} profile change(s) pending sync.`);
+        } else {
+          setLastSyncMsg(`${count} transaction(s) pending sync.`);
+        }
+      } else if (!hasPending && !lastSyncMsg) {
+        setLastSyncMsg("Everything is synced!");
+      }
+    } catch (error) {
+      console.error("Error checking pending changes:", error);
+    }
+  }, [user, lastSyncMsg]);
+
   useFocusEffect(
     useCallback(() => {
       loadTransactions();
-    }, [loadTransactions])
+      checkPendingChanges();
+    }, [loadTransactions, checkPendingChanges])
   );
 
   const formatAmount = (amount: number) => {
@@ -60,10 +94,11 @@ export default function Dashboard() {
 
       const msg =
         result.total === 0
-          ? "No pending changes to sync."
+          ? "Everything is synced!"
           : `Synced ${result.synced} of ${result.total} changes. Deleted ${result.deleted}.`;
 
       setLastSyncMsg(msg);
+      setHasPendingChanges(false);
       loadTransactions(); // Reload transactions after sync
     } catch (err: any) {
       console.error("Sync error", err);
@@ -145,8 +180,15 @@ export default function Dashboard() {
           </Pressable>
 
           {lastSyncMsg && (
-            <View style={styles.syncMessageContainer}>
-              <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+            <View style={[
+              styles.syncMessageContainer,
+              hasPendingChanges && styles.syncMessagePending
+            ]}>
+              <Ionicons 
+                name={hasPendingChanges ? "alert-circle" : "checkmark-circle"} 
+                size={16} 
+                color={hasPendingChanges ? "#FF9800" : "#4CAF50"} 
+              />
               <Text style={styles.syncMessage}>{lastSyncMsg}</Text>
             </View>
           )}
@@ -340,6 +382,9 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 12,
     gap: 8,
+  },
+  syncMessagePending: {
+    backgroundColor: '#FFF3E0',
   },
   syncMessage: {
     flex: 1,
