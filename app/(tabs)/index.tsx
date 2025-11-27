@@ -65,7 +65,6 @@ export default function Dashboard() {
 
       setLastSyncMsg(msg);
       loadTransactions(); // Reload transactions after sync
-      Alert.alert("Sync complete", msg);
     } catch (err: any) {
       console.error("Sync error", err);
       Alert.alert("Sync failed", err?.message || "Unknown error");

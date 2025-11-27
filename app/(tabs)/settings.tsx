@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import { signOut } from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActionSheetIOS, Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { auth } from "../../firebase/config";
 import { loadUserProfileFromFirebase } from "../../firebase/sync";
 import { useAuth } from "../../hooks/useAuth";
@@ -12,6 +13,7 @@ export default function Settings() {
   const [modalVisible, setModalVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const loadUserName = useCallback(async () => {
     if (!user) return;
@@ -34,6 +36,12 @@ export default function Settings() {
       const finalName = storedName || user.displayName || "";
       console.log("Final display name:", finalName);
       setDisplayName(finalName);
+
+      // Load profile image
+      const storedImage = await AsyncStorage.getItem(`user_image_${user.uid}`);
+      if (storedImage) {
+        setProfileImage(storedImage);
+      }
     } catch (error) {
       console.error("Error loading name:", error);
       setDisplayName(user.displayName || "");
@@ -51,6 +59,84 @@ export default function Settings() {
     setModalVisible(true);
   };
 
+  const pickImageFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photo library.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const imageUri = result.assets[0].uri;
+      setProfileImage(imageUri);
+      if (user) {
+        await AsyncStorage.setItem(`user_image_${user.uid}`, imageUri);
+        await AsyncStorage.setItem(`user_image_pending_sync_${user.uid}`, 'true');
+      }
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your camera.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const imageUri = result.assets[0].uri;
+      setProfileImage(imageUri);
+      if (user) {
+        await AsyncStorage.setItem(`user_image_${user.uid}`, imageUri);
+        await AsyncStorage.setItem(`user_image_pending_sync_${user.uid}`, 'true');
+      }
+    }
+  };
+
+  const handleImagePicker = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose from Library'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex: number) => {
+          if (buttonIndex === 1) {
+            takePhoto();
+          } else if (buttonIndex === 2) {
+            pickImageFromGallery();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        'Select Image',
+        'Choose an option',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Take Photo', onPress: takePhoto },
+          { text: 'Choose from Library', onPress: pickImageFromGallery },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
   const handleSaveName = async () => {
     if (!user) return;
     
@@ -58,7 +144,6 @@ export default function Settings() {
       setIsSaving(true);
       await AsyncStorage.setItem(`user_name_${user.uid}`, displayName);
       await AsyncStorage.setItem(`user_name_pending_sync_${user.uid}`, 'true');
-      Alert.alert("Success", "Name saved locally. Sync from dashboard to save to Firebase.");
       setModalVisible(false);
     } catch (error) {
       console.error("Error saving name:", error);
@@ -137,7 +222,14 @@ export default function Settings() {
 
             <View style={styles.modalBody}>
               <View style={styles.profileIconContainer}>
-                <Ionicons name="person-circle" size={80} color="#4CAF50" />
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                ) : (
+                  <Ionicons name="person-circle" size={80} color="#4CAF50" />
+                )}
+                <Pressable style={styles.addPhotoButton} onPress={handleImagePicker}>
+                  <Ionicons name="add-circle" size={32} color="#4CAF50" />
+                </Pressable>
               </View>
 
               <View style={styles.inputGroup}>
@@ -304,6 +396,25 @@ const styles = StyleSheet.create({
   profileIconContainer: {
     alignItems: 'center',
     marginBottom: 24,
+    position: 'relative',
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f5f5f5',
+  },
+  addPhotoButton: {
+    position: 'absolute',
+    bottom: -5,
+    right: '35%',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   inputGroup: {
     marginBottom: 16,

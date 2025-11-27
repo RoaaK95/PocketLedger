@@ -56,23 +56,65 @@ export async function syncTxs(userId: string) {
 
 async function syncUserProfile(userId: string) {
   try {
-    const pendingSync = await AsyncStorage.getItem(`user_name_pending_sync_${userId}`);
+    const pendingNameSync = await AsyncStorage.getItem(`user_name_pending_sync_${userId}`);
+    const pendingImageSync = await AsyncStorage.getItem(`user_image_pending_sync_${userId}`);
     
-    if (pendingSync === 'true') {
+    const updateData: any = {};
+    
+    // Sync name if pending
+    if (pendingNameSync === 'true') {
       const userName = await AsyncStorage.getItem(`user_name_${userId}`);
-      
       if (userName !== null) {
-        const userDocRef = doc(fs, "users", userId);
-        // Update both 'name' and 'displayName' fields for consistency
-        await setDoc(userDocRef, { name: userName, displayName: userName }, { merge: true });
-        
-        // Clear pending sync flag
+        updateData.name = userName;
+        updateData.displayName = userName;
         await AsyncStorage.removeItem(`user_name_pending_sync_${userId}`);
-        console.log("User profile synced to Firebase:", userName);
+        console.log("User name synced to Firebase:", userName);
       }
+    }
+    
+    // Sync profile image if pending
+    if (pendingImageSync === 'true') {
+      const imageUri = await AsyncStorage.getItem(`user_image_${userId}`);
+      if (imageUri) {
+        try {
+          // Convert image to base64 and store directly in Firestore
+          const base64Image = await convertImageToBase64(imageUri);
+          updateData.profileImageUrl = base64Image;
+          await AsyncStorage.removeItem(`user_image_pending_sync_${userId}`);
+          console.log("Profile image synced to Firebase");
+        } catch (error) {
+          console.error("Error uploading profile image:", error);
+        }
+      }
+    }
+    
+    // Update Firestore if there's data to sync
+    if (Object.keys(updateData).length > 0) {
+      const userDocRef = doc(fs, "users", userId);
+      await setDoc(userDocRef, updateData, { merge: true });
     }
   } catch (error) {
     console.error("Error syncing user profile:", error);
+  }
+}
+
+async function convertImageToBase64(imageUri: string): Promise<string> {
+  try {
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        resolve(base64data);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error: any) {
+    console.error("Base64 conversion error:", error);
+    throw new Error(`Failed to convert image: ${error.message}`);
   }
 }
 
@@ -83,13 +125,21 @@ export async function loadUserProfileFromFirebase(userId: string) {
     
     if (userDoc.exists()) {
       const data = userDoc.data();
-      // Check both 'name' (from sign-up) and 'displayName' (from sync)
+      
+      // Load and save display name
       const displayName = data.displayName || data.name;
       if (displayName) {
         await AsyncStorage.setItem(`user_name_${userId}`, displayName);
         console.log("User profile loaded from Firebase:", displayName);
-        return displayName;
       }
+      
+      // Load and save profile image URL
+      if (data.profileImageUrl) {
+        await AsyncStorage.setItem(`user_image_${userId}`, data.profileImageUrl);
+        console.log("Profile image URL loaded from Firebase");
+      }
+      
+      return displayName || null;
     }
   } catch (error) {
     console.error("Error loading user profile from Firebase:", error);
