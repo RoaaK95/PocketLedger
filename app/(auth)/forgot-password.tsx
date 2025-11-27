@@ -1,17 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { auth } from "../../firebase/config";
 
-export default function SignIn(){
-    const [email, setEmail]= useState("");
-    const [password, setPassword] = useState("");
+export default function ForgotPassword() {
+    const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
-    const onSubmit = async () =>{
+    const onSubmit = async () => {
         // Validate email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!email.trim()) {
@@ -22,26 +20,27 @@ export default function SignIn(){
             Alert.alert("Error", "Please enter a valid email address");
             return;
         }
-        if (!password) {
-            Alert.alert("Error", "Please enter your password");
-            return;
-        }
 
         setLoading(true);
         try {
-            await signInWithEmailAndPassword(auth, email.trim(), password);
-            router.replace("/");
+            await sendPasswordResetEmail(auth, email.trim());
+            Alert.alert(
+                "Success", 
+                "Password reset email sent! Please check your inbox.",
+                [
+                    {
+                        text: "OK",
+                        onPress: () => router.back()
+                    }
+                ]
+            );
         } catch (error: any) {
             console.error(error);
-            let message = "Failed to sign in";
+            let message = "Failed to send reset email";
             if (error.code === "auth/invalid-email") {
                 message = "Invalid email address";
             } else if (error.code === "auth/user-not-found") {
                 message = "No account found with this email";
-            } else if (error.code === "auth/wrong-password") {
-                message = "Incorrect password";
-            } else if (error.code === "auth/invalid-credential") {
-                message = "Invalid email or password";
             }
             Alert.alert("Error", message);
         } finally {
@@ -49,18 +48,24 @@ export default function SignIn(){
         }
     };
 
-    return(
+    return (
         <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}
         >
             <View style={styles.content}>
+                <Pressable onPress={() => router.back()} style={styles.backButton}>
+                    <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+                </Pressable>
+
                 <View style={styles.header}>
                     <View style={styles.iconContainer}>
-                        <Ionicons name="wallet" size={48} color="#4CAF50" />
+                        <Ionicons name="lock-closed" size={48} color="#4CAF50" />
                     </View>
-                    <Text style={styles.title}>Welcome Back</Text>
-                    <Text style={styles.subtitle}>Sign in to continue to PocketLedger</Text>
+                    <Text style={styles.title}>Forgot Password?</Text>
+                    <Text style={styles.subtitle}>
+                        Enter your email address and we&apos;ll send you instructions to reset your password
+                    </Text>
                 </View>
 
                 <View style={styles.form}>
@@ -77,49 +82,26 @@ export default function SignIn(){
                         />
                     </View>
 
-                    <View style={styles.inputContainer}>
-                        <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
-                        <TextInput 
-                            placeholder="Password" 
-                            value={password} 
-                            onChangeText={setPassword} 
-                            secureTextEntry={!showPassword}
-                            style={styles.input}
-                            placeholderTextColor="#999"
-                        />
-                        <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                            <Ionicons 
-                                name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                                size={20} 
-                                color="#666" 
-                            />
-                        </Pressable>
-                    </View>
-
-                    <Pressable onPress={() => router.push("./forgot-password")} style={styles.forgotPassword}>
-                        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-                    </Pressable>
-
                     <Pressable 
                         onPress={onSubmit} 
                         disabled={loading} 
                         style={[styles.button, loading && styles.buttonDisabled]}
                     >
                         <Text style={styles.buttonText}>
-                            {loading ? "Signing in..." : "Sign In"}
+                            {loading ? "Sending..." : "Send Reset Email"}
                         </Text>
                     </Pressable>
 
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-                        <Pressable onPress={() => router.push("./sign-up")}>
-                            <Text style={styles.linkText}>Sign Up</Text>
+                        <Text style={styles.footerText}>Remember your password? </Text>
+                        <Pressable onPress={() => router.back()}>
+                            <Text style={styles.linkText}>Sign In</Text>
                         </Pressable>
                     </View>
                 </View>
             </View>
         </KeyboardAvoidingView>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -131,6 +113,22 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         padding: 24,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: 24,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     header: {
         alignItems: 'center',
@@ -154,6 +152,9 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 15,
         color: '#666',
+        textAlign: 'center',
+        paddingHorizontal: 20,
+        lineHeight: 22,
     },
     form: {
         gap: 16,
@@ -175,18 +176,6 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         color: '#1a1a1a',
-    },
-    eyeIcon: {
-        padding: 4,
-    },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        paddingVertical: 4,
-    },
-    forgotPasswordText: {
-        fontSize: 14,
-        color: '#4CAF50',
-        fontWeight: '600',
     },
     button: {
         backgroundColor: '#4CAF50',
