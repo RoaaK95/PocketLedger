@@ -157,9 +157,17 @@ export default function Dashboard() {
   const handleRestore = async () => {
     if (!user) return;
 
+    // Check if there are pending changes
+    const pendingTxs = getPendingTxs(user.uid);
+    const hasPendingLocal = pendingTxs.length > 0;
+
+    const warningMessage = hasPendingLocal
+      ? `⚠️ You have ${pendingTxs.length} unsynced local transaction(s).\n\nRestoring will MERGE cloud data with your local changes.\n\nYour local changes will be kept but still need to be backed up.\n\nContinue?`
+      : `This will download data from cloud and merge it with your local data.\n\nContinue?`;
+
     Alert.alert(
       "Restore from Cloud",
-      "This will replace your local data with data from the cloud. Continue?",
+      warningMessage,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -174,11 +182,14 @@ export default function Dashboard() {
                 "Restore Complete",
                 `Restored ${result.transactions} transaction(s) and ${
                   result.profile ? "profile data" : "no profile data"
-                }.`
+                }.${
+                  hasPendingLocal
+                    ? `\n\n⚠️ Your ${pendingTxs.length} local transaction(s) are still pending backup.`
+                    : ""
+                }`
               );
 
               setLastSyncMsg("Data restored from cloud!");
-              setHasPendingChanges(false);
               loadTransactions();
               loadCurrency();
               checkPendingChanges();
