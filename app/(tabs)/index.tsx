@@ -157,52 +157,58 @@ export default function Dashboard() {
   const handleRestore = async () => {
     if (!user) return;
 
-    // Check if there are pending changes
+    // Check if there are pending changes (exclude pending deletions)
     const pendingTxs = getPendingTxs(user.uid);
-    const hasPendingLocal = pendingTxs.length > 0;
+    const pendingNonDeletes = pendingTxs.filter(
+      (tx) => tx.syncStatus !== "deleted"
+    );
+    const hasPendingLocal = pendingNonDeletes.length > 0;
 
     const warningMessage = hasPendingLocal
-      ? `⚠️ You have ${pendingTxs.length} unsynced local transaction(s).\n\nRestoring will MERGE cloud data with your local changes.\n\nYour local changes will be kept but still need to be backed up.\n\nContinue?`
+      ? `⚠️ You have ${pendingNonDeletes.length} unsynced local transaction(s).\n\nRestoring will MERGE cloud data with your local changes.\n\nYour local changes will be kept but still need to be backed up.\n\nContinue?`
       : `This will download data from cloud and merge it with your local data.\n\nContinue?`;
 
-    Alert.alert(
-      "Restore from Cloud",
-      warningMessage,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Restore",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setRestoring(true);
-              const result = await pullFromCloud(user.uid);
+    Alert.alert("Restore from Cloud", warningMessage, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Restore",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setRestoring(true);
+            const result = await pullFromCloud(user.uid);
 
-              Alert.alert(
-                "Restore Complete",
-                `Restored ${result.transactions} transaction(s) and ${
-                  result.profile ? "profile data" : "no profile data"
-                }.${
-                  hasPendingLocal
-                    ? `\n\n⚠️ Your ${pendingTxs.length} local transaction(s) are still pending backup.`
-                    : ""
-                }`
-              );
+            // Recheck pending after restore to get accurate count
+            const currentPendingTxs = getPendingTxs(user.uid);
+            const currentPendingNonDeletes = currentPendingTxs.filter(
+              (tx) => tx.syncStatus !== "deleted"
+            );
+            const stillHasPending = currentPendingNonDeletes.length > 0;
 
-              setLastSyncMsg("Data restored from cloud!");
-              loadTransactions();
-              loadCurrency();
-              checkPendingChanges();
-            } catch (err: any) {
-              console.error("Restore error", err);
-              Alert.alert("Restore failed", err?.message || "Unknown error");
-            } finally {
-              setRestoring(false);
-            }
-          },
+            Alert.alert(
+              "Restore Complete",
+              `Restored ${result.transactions} transaction(s) and ${
+                result.profile ? "profile data" : "no profile data"
+              }.${
+                stillHasPending
+                  ? `\n\n⚠️ Your ${currentPendingNonDeletes.length} local transaction(s) are still pending backup.`
+                  : ""
+              }`
+            );
+
+            setLastSyncMsg("Data restored from cloud!");
+            loadTransactions();
+            loadCurrency();
+            checkPendingChanges();
+          } catch (err: any) {
+            console.error("Restore error", err);
+            Alert.alert("Restore failed", err?.message || "Unknown error");
+          } finally {
+            setRestoring(false);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
