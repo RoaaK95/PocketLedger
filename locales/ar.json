@@ -1,0 +1,17 @@
+{
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "مرحباً بك في دفتر الجيب",
+    "totalBalance": "الرصيد الإجمالي",
+    "income": "الدخل",
+    "expenses": "المصروفات",
+    "cloudSync": "المزامنة السحابية",
+    "backupToCloud": "النسخ الاحتياطي إلى السحابة",
+    "restoreFromCloud": "الاستعادة من السحابة",
+    "uploading": "جاري الرفع...",
+    "restoring": "جاري الاستعادة...",
+    "everythingSynced": "كل شيء متزامن!",
+    "transactionsPending": "{{count}} معاملة في انتظار المزامنة.",
+    "profileChangesPending": "{{count}} تغيير في الملف الشخصي في انتظار المزامنة."
+  }
+}

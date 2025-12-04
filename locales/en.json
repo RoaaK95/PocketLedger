@@ -1,0 +1,17 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Welcome to Pocket Ledger",
+    "totalBalance": "Total Balance",
+    "income": "Income",
+    "expenses": "Expenses",
+    "cloudSync": "Cloud Sync",
+    "backupToCloud": "Backup to Cloud",
+    "restoreFromCloud": "Restore from Cloud",
+    "uploading": "Uploading...",
+    "restoring": "Restoring...",
+    "everythingSynced": "Everything is synced!",
+    "transactionsPending": "{{count}} transaction(s) pending sync.",
+    "profileChangesPending": "{{count}} profile change(s) pending sync."
+  }
+}
