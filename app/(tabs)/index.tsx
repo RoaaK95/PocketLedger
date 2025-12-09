@@ -10,9 +10,12 @@ import {
   Text,
   View,
 } from "react-native";
+import { NotificationBanner } from "../../components/ui/notification-banner";
+import { NotificationCenter } from "../../components/ui/notification-center";
 import { listTxs, Tx } from "../../db/transactionsRepo";
 import { getPendingTxs, pullFromCloud, syncTxs } from "../../firebase/sync";
 import { useAuth } from "../../hooks/useAuth";
+import { useInAppNotifications } from "../../hooks/useInAppNotifications";
 const getCurrencySymbol = (currencyCode: string) => {
   return currencyCode;
 };
@@ -28,6 +31,19 @@ export default function Dashboard() {
   const [balance, setBalance] = useState(0);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [currency, setCurrency] = useState("IQD");
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
+  const [activeNotification, setActiveNotification] = useState<any>(null);
+
+  // Notification system
+  const {
+    notifications,
+    unreadCount,
+    addNotification,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
+  } = useInAppNotifications(user?.uid || null);
 
   const loadTransactions = useCallback(() => {
     if (!user) return;
@@ -121,7 +137,21 @@ export default function Dashboard() {
       loadTransactions();
       loadCurrency();
       checkPendingChanges();
-    }, [loadTransactions, loadCurrency, checkPendingChanges])
+
+      // Show latest unread notification as banner
+      if (notifications.length > 0 && !activeNotification) {
+        const latestUnread = notifications.find((n) => !n.read);
+        if (latestUnread) {
+          setActiveNotification(latestUnread);
+        }
+      }
+    }, [
+      loadTransactions,
+      loadCurrency,
+      checkPendingChanges,
+      notifications,
+      activeNotification,
+    ])
   );
 
   const formatAmount = (amount: number) => {
@@ -211,12 +241,73 @@ export default function Dashboard() {
     ]);
   };
 
+  // Test notification function (for development)
+  const handleTestNotification = async () => {
+    if (!user) return;
+    
+    await addNotification(
+      "transaction_reminder",
+      "Haven't logged expenses today",
+      "Tap to add your transactions and keep your budget on track",
+      {
+        actionRoute: "/add-transaction",
+        icon: "calendar-outline",
+        priority: "normal",
+      }
+    );
+
+    // Show the notification banner immediately
+    setTimeout(() => {
+      const latestUnread = notifications.find((n) => !n.read);
+      if (latestUnread) {
+        setActiveNotification(latestUnread);
+      }
+    }, 100);
+  };
+
   return (
     <ScrollView style={styles.container}>
+      {/* Notification Banner */}
+      {activeNotification && (
+        <NotificationBanner
+          notification={activeNotification}
+          onDismiss={() => {
+            markAsRead(activeNotification.id);
+            setActiveNotification(null);
+          }}
+        />
+      )}
+
+      {/* Notification Center Modal */}
+      <NotificationCenter
+        visible={showNotificationCenter}
+        onClose={() => setShowNotificationCenter(false)}
+        notifications={notifications}
+        onMarkAsRead={markAsRead}
+        onMarkAllAsRead={markAllAsRead}
+        onDelete={deleteNotification}
+        onClearAll={clearAll}
+      />
+
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Dashboard</Text>
           <Text style={styles.subtitle}>Welcome to Pocket Ledger</Text>
+
+          {/* Notification Bell Icon */}
+          <Pressable
+            onPress={() => setShowNotificationCenter(true)}
+            style={styles.notificationButton}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#1a1a1a" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
         </View>
 
         <View style={styles.statsContainer}>
@@ -329,6 +420,21 @@ export default function Dashboard() {
             </View>
           )}
         </View>
+
+        {__DEV__ && (
+          <View style={styles.testSection}>
+            <Text style={{ color: "#666", fontSize: 12, marginBottom: 8 }}>
+              🧪 Developer Tools
+            </Text>
+            <Pressable
+              style={[styles.syncButton, { backgroundColor: "#9b59b6" }]}
+              onPress={handleTestNotification}
+            >
+              <Ionicons name="flask" size={20} color="#fff" />
+              <Text style={styles.syncButtonText}>Test Notification</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -530,5 +636,39 @@ const styles = StyleSheet.create({
   },
   restoreButton: {
     backgroundColor: "#2196F3",
+  },
+  notificationButton: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    padding: 8,
+  },
+  badge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#ff6b6b",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  testSection: {
+    marginTop: 32,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });
