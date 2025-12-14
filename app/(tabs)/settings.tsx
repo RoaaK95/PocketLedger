@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { signOut } from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
 import { ActionSheetIOS, Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SalaryReminderSettings } from "../../components/ui/salary-reminder-settings";
 import { auth } from "../../firebase/config";
 import { loadUserProfileFromFirebase } from "../../firebase/sync";
 import { useAuth } from "../../hooks/useAuth";
@@ -12,6 +13,7 @@ export default function Settings() {
   const { user } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
+  const [salaryReminderVisible, setSalaryReminderVisible] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -224,7 +226,6 @@ export default function Settings() {
 
           
         </View>
-
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           
@@ -233,6 +234,18 @@ export default function Settings() {
             <View style={styles.settingTextContainer}>
               <Text style={styles.settingText}>Currency</Text>
               <Text style={styles.settingValue}>{currency}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </Pressable>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          
+          <Pressable style={styles.settingItem} onPress={() => setSalaryReminderVisible(true)}>
+            <Ionicons name="notifications-outline" size={20} color="#666" style={styles.settingIcon} />
+            <View style={styles.settingTextContainer}>
+              <Text style={styles.settingText}>Salary Reminder</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </Pressable>
@@ -360,6 +373,13 @@ export default function Settings() {
           </View>
         </View>
       </Modal>
+
+      {/* Salary Reminder Settings Modal */}
+      <SalaryReminderSettings
+        visible={salaryReminderVisible}
+        onClose={() => setSalaryReminderVisible(false)}
+        userId={user?.uid || ""}
+      />
     </ScrollView>
   );
 }
@@ -600,4 +620,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  settingSubtext: {
+    fontSize: 13,
+    color: '#999',
+    marginTop: 2,
+  },
 });
+
+// Add Salary Reminder Modal before the closing tags
+
