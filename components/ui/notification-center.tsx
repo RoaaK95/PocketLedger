@@ -1,15 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
-    FlatList,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    useColorScheme,
-    View,
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { Colors } from "../../constants/theme";
 import { InAppNotification } from "../../hooks/useInAppNotifications";
 
 type NotificationCenterProps = {
@@ -31,9 +29,7 @@ export function NotificationCenter({
   onDelete,
   onClearAll,
 }: NotificationCenterProps) {
-  const colorScheme = useColorScheme();
   const router = useRouter();
-  const colors = Colors[colorScheme ?? "light"];
 
   const handleNotificationPress = (notification: InAppNotification) => {
     onMarkAsRead(notification.id);
@@ -96,15 +92,7 @@ export function NotificationCenter({
       onPress={() => handleNotificationPress(item)}
       style={[
         styles.notificationItem,
-        {
-          backgroundColor: item.read
-            ? colorScheme === "dark"
-              ? "#1c1c1c"
-              : "#f8f9fa"
-            : colorScheme === "dark"
-            ? "#2c2c2c"
-            : "#ffffff",
-        },
+        item.read ? styles.notificationItemRead : styles.notificationItemUnread,
       ]}
     >
       <View style={styles.notificationContent}>
@@ -121,7 +109,6 @@ export function NotificationCenter({
           <Text
             style={[
               styles.notificationTitle,
-              { color: colors.text },
               item.read && styles.readText,
             ]}
           >
@@ -130,13 +117,12 @@ export function NotificationCenter({
           <Text
             style={[
               styles.notificationMessage,
-              { color: colors.icon },
               item.read && styles.readText,
             ]}
           >
             {item.message}
           </Text>
-          <Text style={[styles.timestamp, { color: colors.icon }]}>
+          <Text style={styles.timestamp}>
             {formatTime(item.timestamp)}
           </Text>
         </View>
@@ -146,7 +132,7 @@ export function NotificationCenter({
           style={styles.deleteButton}
           hitSlop={8}
         >
-          <Ionicons name="trash-outline" size={18} color={colors.icon} />
+          <Ionicons name="trash-outline" size={18} color="#666" />
         </Pressable>
       </View>
     </Pressable>
@@ -159,31 +145,29 @@ export function NotificationCenter({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View
-        style={[styles.container, { backgroundColor: colors.background }]}
-      >
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
+          <Text style={styles.headerTitle}>
             Notifications
           </Text>
           <View style={styles.headerActions}>
             {notifications.length > 0 && (
               <>
                 <Pressable onPress={onMarkAllAsRead} style={styles.headerButton}>
-                  <Text style={[styles.headerButtonText, { color: colors.tint }]}>
+                  <Text style={styles.markReadText}>
                     Mark all read
                   </Text>
                 </Pressable>
                 <Pressable onPress={onClearAll} style={styles.headerButton}>
-                  <Text style={[styles.headerButtonText, { color: "#ff6b6b" }]}>
+                  <Text style={styles.clearAllText}>
                     Clear all
                   </Text>
                 </Pressable>
               </>
             )}
             <Pressable onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color={colors.text} />
+              <Ionicons name="close" size={28} color="#666" />
             </Pressable>
           </View>
         </View>
@@ -194,9 +178,9 @@ export function NotificationCenter({
             <Ionicons
               name="notifications-off-outline"
               size={64}
-              color={colors.icon}
+              color="#999"
             />
-            <Text style={[styles.emptyText, { color: colors.icon }]}>
+            <Text style={styles.emptyText}>
               No notifications yet
             </Text>
           </View>
@@ -217,6 +201,7 @@ export function NotificationCenter({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: "row",
@@ -224,13 +209,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 16,
+    paddingBottom: 20,
+    backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "700",
+    color: '#1a1a1a',
   },
   headerActions: {
     flexDirection: "row",
@@ -241,9 +228,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
   },
-  headerButtonText: {
+  markReadText: {
     fontSize: 14,
     fontWeight: "600",
+    color: "#4CAF50",
+  },
+  clearAllText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ff6b6b",
   },
   closeButton: {
     padding: 4,
@@ -253,16 +246,22 @@ const styles = StyleSheet.create({
   },
   notificationItem: {
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  notificationItemUnread: {
+    backgroundColor: 'white',
+  },
+  notificationItemRead: {
+    backgroundColor: '#f8f9fa',
   },
   notificationContent: {
     flexDirection: "row",
@@ -285,18 +284,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notificationTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
+    color: '#1a1a1a',
     marginBottom: 4,
   },
   notificationMessage: {
-    fontSize: 12,
+    fontSize: 13,
     lineHeight: 18,
+    color: '#666',
     marginBottom: 4,
   },
   timestamp: {
     fontSize: 11,
-    opacity: 0.7,
+    color: '#999',
   },
   readText: {
     opacity: 0.6,
@@ -313,6 +314,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
+    color: '#666',
     marginTop: 16,
   },
 });

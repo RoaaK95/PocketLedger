@@ -2,14 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import {
-    Animated,
-    Pressable,
-    StyleSheet,
-    Text,
-    useColorScheme,
-    View,
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { Colors } from "../../constants/theme";
 import { InAppNotification } from "../../hooks/useInAppNotifications";
 
 type NotificationBannerProps = {
@@ -23,12 +21,9 @@ export function NotificationBanner({
   onDismiss,
   autoHideDuration = 5000,
 }: NotificationBannerProps) {
-  const colorScheme = useColorScheme();
   const router = useRouter();
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-
-  const colors = Colors[colorScheme ?? "light"];
 
   useEffect(() => {
     // Slide in animation
@@ -123,8 +118,6 @@ export function NotificationBanner({
         style={[
           styles.banner,
           {
-            backgroundColor:
-              colorScheme === "dark" ? "#2c2c2c" : "#ffffff",
             borderLeftColor: getBackgroundColor(),
           },
         ]}
@@ -139,13 +132,13 @@ export function NotificationBanner({
 
         <View style={styles.textContainer}>
           <Text
-            style={[styles.title, { color: colors.text }]}
+            style={styles.title}
             numberOfLines={1}
           >
             {notification.title}
           </Text>
           <Text
-            style={[styles.message, { color: colors.icon }]}
+            style={styles.message}
             numberOfLines={2}
           >
             {notification.message}
@@ -153,7 +146,7 @@ export function NotificationBanner({
         </View>
 
         <Pressable onPress={handleDismiss} style={styles.closeButton}>
-          <Ionicons name="close" size={20} color={colors.icon} />
+          <Ionicons name="close" size={20} color="#666" />
         </Pressable>
       </Pressable>
     </Animated.View>
@@ -174,12 +167,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderLeftWidth: 4,
+    backgroundColor: 'white',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -192,11 +186,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: "600",
+    color: '#1a1a1a',
     marginBottom: 2,
   },
   message: {
     fontSize: 12,
     lineHeight: 16,
+    color: '#666',
   },
   closeButton: {
     padding: 4,
