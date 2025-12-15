@@ -62,7 +62,7 @@ A modern, offline-first React Native mobile app for tracking personal income and
 - CSV/PDF export functionality
 - Recurring transaction scheduling
 
-# �👥 Contributing
+# 👥 Contributing
 
 Feel free to fork, open issues, or send PRs. Let's make personal finance management accessible to everyone.
 
