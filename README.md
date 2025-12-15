@@ -1,211 +1,71 @@
 # PocketLedger 💰
 
-A modern, offline-first React Native mobile app for tracking personal income and expenses. Built with Expo Router, featuring local SQLite storage with automatic cloud sync to Firebase Firestore.
+A modern, offline-first React Native mobile app for tracking personal income and expenses with automatic cloud sync, smart notifications, and multi-currency support.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Expo](https://img.shields.io/badge/Expo-~54.0-000020.svg?style=flat&logo=expo)
-![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB.svg?style=flat&logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?style=flat&logo=typescript)
+[![Expo](https://img.shields.io/badge/Expo-~54.0-000020.svg?style=flat&logo=expo)](https://expo.dev)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB.svg?style=flat&logo=react)](https://reactnative.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 
 ## ✨ Features
 
-- **💳 Transaction Management**: Track income and expenses with categories, notes, and dates
-- **🔒 Firebase Authentication**: Secure user authentication with email/password
-- **📱 Offline-First Architecture**: Full functionality without internet connection using SQLite
-- **☁️ Cloud Sync**: Automatic synchronization with Firebase Firestore when online
-- **🎨 Modern UI**: Clean, polished interface with dark/light theme support
-- **📊 Categorization**: Organize transactions with customizable categories and icons
-- **🔄 Real-time Updates**: Seamless data sync across devices
-- **📤 Export-Ready**: Built with EAS for easy APK/App Bundle generation
+- **Transaction tracking** with income/expense categorization
+- **Offline-first architecture** — full functionality without internet using SQLite
+- **Automatic cloud sync** to Firebase Firestore with conflict resolution
+- **Smart notification center** — in-app notifications, salary reminders, transaction alerts
+- **Multi-currency support** — 13+ currencies (USD, EUR, GBP, IQD, SAR, AED, KWD, etc.)
+- **User profiles** with display names and profile pictures
+- **Real-time dashboard** showing income, expenses, and balance
+- **Manual sync controls** — pull from cloud, restore from backup
+- **Firebase authentication** with email/password and password recovery
 
-## 🏗️ Tech Stack
+## 🛠️ Tech Stack
 
-### Frontend
-- **React Native** (0.81.5) - Cross-platform mobile framework
-- **Expo** (~54.0) - Development tooling and managed workflow
-- **Expo Router** (~6.0) - File-based routing with typed routes
-- **TypeScript** (5.9) - Type-safe development
-- **React Navigation** - Navigation with bottom tabs
+- React Native + TypeScript
+- Expo Router for file-based navigation
+- Firebase (Auth + Firestore) for cloud sync
+- Expo SQLite for local database
+- Expo Notifications for push & local notifications
+- React Native Reanimated for animations
+- AsyncStorage for user preferences
 
-### Backend & Storage
-- **Firebase Auth** - User authentication and session management
-- **Firebase Firestore** - Cloud database for sync
-- **Expo SQLite** - Local offline database
-- **AsyncStorage** - Persistent key-value storage
+## 🧠 Technical Decisions
 
-### Additional Libraries
-- **React Native Reanimated** - Smooth animations
-- **Expo Haptics** - Tactile feedback
-- **UUID** - Unique ID generation for transactions
-- **Expo Image Picker** - Profile/receipt image uploads
+- Used **offline-first architecture** to ensure app works without internet, syncing later when online.
+- Applied **SQLite** for local data persistence with automatic Firestore sync.
+- Used **Expo Notifications** for reliable salary reminders and transaction alerts.
+- Split sync logic, database operations, and UI components for maintainability.
 
-## 📁 Project Structure
+## 📦 Usage Example
 
-```
-PocketLedger/
-├── app/                          # Expo Router pages
-│   ├── (auth)/                   # Authentication screens
-│   │   ├── sign-in.tsx
-│   │   ├── sign-up.tsx
-│   │   └── forgot-password.tsx
-│   ├── (tabs)/                   # Main app tabs
-│   │   ├── index.tsx            # Dashboard/Home
-│   │   ├── transactions.tsx     # Transaction list
-│   │   └── settings.tsx         # User settings
-│   ├── add-transaction.tsx      # Add new transaction
-│   ├── view-transaction.tsx     # Transaction details
-│   └── _layout.tsx              # Root layout
-├── components/                   # Reusable UI components
-│   └── ui/                      # UI primitives
-├── constants/                    # App constants & theme
-├── db/                          # Database layer
-│   ├── sqlite.ts               # SQLite initialization
-│   └── transactionsRepo.ts     # Transaction repository
-├── firebase/                     # Firebase configuration
-│   ├── config.ts               # Firebase setup
-│   └── sync.ts                 # Sync logic
-├── hooks/                       # Custom React hooks
-│   └── useAuth.tsx             # Authentication hook
-└── assets/                      # Images and static files
-```
+- Sign up or sign in with email/password
+- Add income/expense transactions with categories
+- View dashboard showing balance and recent transactions
+- Switch currency in settings (USD, EUR, IQD, etc.)
+- Configure salary reminders for monthly notifications
+- Sync data across devices via Firebase
+- Work offline — data syncs automatically when online
 
-## 🚀 Getting Started
+## 🌱 Why This Project?
 
-### Prerequisites
+- Helps people manage personal finances and track spending habits
+- Works offline-first for reliability in areas with poor connectivity
+- Multi-currency support for travelers and international users
+- Smart notifications to maintain financial discipline
+- A practical tool with real-world financial impact
 
-- **Node.js** (v18 or higher)
-- **npm** or **yarn**
-- **Expo CLI**: `npm install -g expo-cli`
-- **EAS CLI** (for building): `npm install -g eas-cli`
-- **Android Studio** or **Xcode** (for emulators)
+## 🔮 Future Improvements
 
-### Installation
+- Multi-language support
+- Server timestamp-based conflict resolution for multi-device editing
+- Monthly/yearly budget tracking and spending limits
+- Category-wise spending analytics and charts
+- CSV/PDF export functionality
+- Recurring transaction scheduling
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/RoaaK95/PocketLedger.git
-   cd PocketLedger
-   ```
+# �👥 Contributing
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+Feel free to fork, open issues, or send PRs. Let's make personal finance management accessible to everyone.
 
-3. **Set up Firebase**
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication (Email/Password)
-   - Create a Firestore database
-   - Update `firebase/config.ts` with your Firebase credentials
+## 📝 License
 
-4. **Start the development server**
-   ```bash
-   npm start
-   ```
-
-### Running the App
-
-- **iOS Simulator**: `npm run ios`
-- **Android Emulator**: `npm run android`
-- **Web Browser**: `npm run web`
-- **Physical Device**: Scan QR code with Expo Go app
-
-## 📱 Building for Production
-
-### Android APK
-
-```bash
-npx eas build -p android --profile apk
-```
-
-### Android App Bundle (Google Play)
-
-```bash
-npx eas build -p android --profile production
-```
-
-### iOS
-
-```bash
-npx eas build -p ios --profile production
-```
-
-## 🗄️ Database Schema
-
-### Transactions Table
-```sql
-CREATE TABLE transactions (
-  id TEXT PRIMARY KEY,
-  userId TEXT NOT NULL,
-  type TEXT NOT NULL,           -- 'income' or 'expense'
-  amount REAL NOT NULL,
-  categoryId TEXT NOT NULL,
-  note TEXT,
-  date TEXT NOT NULL,
-  createdAt TEXT NOT NULL,
-  updatedAt TEXT NOT NULL,
-  syncStatus TEXT NOT NULL      -- 'synced', 'pending', 'error'
-);
-```
-
-### Categories Table
-```sql
-CREATE TABLE categories (
-  id TEXT PRIMARY KEY,
-  userId TEXT NOT NULL,
-  name TEXT NOT NULL,
-  icon TEXT,
-  color TEXT,
-  createdAt TEXT NOT NULL
-);
-```
-
-## 🔄 Sync Architecture
-
-The app implements an **offline-first** approach:
-
-1. **Local Operations**: All CRUD operations happen on SQLite first
-2. **Sync Queue**: Changes are marked with `syncStatus: 'pending'`
-3. **Background Sync**: When online, pending changes sync to Firestore
-4. **Conflict Resolution**: Server timestamp-based merge strategy
-5. **Fallback**: Full offline functionality maintained
-
-
-## 📝 Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm start` | Start Expo development server |
-| `npm run android` | Run on Android emulator/device |
-| `npm run ios` | Run on iOS simulator/device |
-| `npm run web` | Run in web browser |
-| `npm run lint` | Run ESLint |
-| `npm run reset-project` | Reset project to clean state |
-
-## 🔐 Security Notes
-
-- Firebase API keys are included for demo purposes
-- **For production**: Use environment variables and secrets management
-- Implement proper security rules in Firestore
-- Enable app check for production builds
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-
----
-
-⭐ If you find this project useful, please consider giving it a star!
- 
- 
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
