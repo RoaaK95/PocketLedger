@@ -45,10 +45,9 @@ A modern, offline-first React Native mobile app for tracking personal income and
 - Sync data across devices via Firebase
 - Work offline — data syncs automatically when online
   
-## 📷 Screenshots  
+## 📷 Recording 
 
-- ![Home](https://github.com/user-attachments/assets/a3d8b886-b339-434f-ae8e-34a8aeed0ea3)  
-- ![Screen_Recording_20251215_122543_ExpoGo-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/9dcf57a7-0c3e-419e-b299-5fec08944e40)
+![Screen_Recording_20251215_122543_Expo Go](https://github.com/user-attachments/assets/85365cf9-b737-464f-8bec-46e339afd93b)
 
 
  
