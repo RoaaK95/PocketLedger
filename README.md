@@ -44,7 +44,13 @@ A modern, offline-first React Native mobile app for tracking personal income and
 - Configure salary reminders for monthly notifications
 - Sync data across devices via Firebase
 - Work offline — data syncs automatically when online
+  
+## 📷 Recording 
 
+![Screen_Recording_20251215_122543_Expo Go](https://github.com/user-attachments/assets/85365cf9-b737-464f-8bec-46e339afd93b)
+
+
+ 
 ## 🌱 Why This Project?
 
 - Helps people manage personal finances and track spending habits
@@ -62,7 +68,7 @@ A modern, offline-first React Native mobile app for tracking personal income and
 - CSV/PDF export functionality
 - Recurring transaction scheduling
 
-# �👥 Contributing
+# 👥 Contributing
 
 Feel free to fork, open issues, or send PRs. Let's make personal finance management accessible to everyone.
 
