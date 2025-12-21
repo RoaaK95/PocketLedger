@@ -1,19 +1,18 @@
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { Auth, getAuth, initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA0lLAxQbZqObz7r4tRjjbtZR48nz32N_o",
-  authDomain: "pocketledger-ded5c.firebaseapp.com",
-  projectId: "pocketledger-ded5c",
-  storageBucket: "pocketledger-ded5c.appspot.com",
-  messagingSenderId: "692400109692",
-  appId: "1:692400109692:web:d1e9cc2414e45b112331f9",
-  measurementId: "G-TY4METMXLX"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
-
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
@@ -21,13 +20,13 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 let auth: Auth;
 try {
   // @ts-ignore - getReactNativePersistence is available at runtime
-  const { getReactNativePersistence } = require('firebase/auth');
+  const { getReactNativePersistence } = require("firebase/auth");
   auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
   });
 } catch (error: any) {
   // Auth already initialized, get existing instance
-  if (error.code === 'auth/already-initialized') {
+  if (error.code === "auth/already-initialized") {
     auth = getAuth(app);
   } else {
     throw error;
